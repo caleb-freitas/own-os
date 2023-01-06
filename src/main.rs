@@ -6,25 +6,30 @@
 
 use core::panic::PanicInfo;
 
-static HELLO: &[u8] = b"Goodbye, world!";
-
 // overwrites the os entry point to our own `_start` impl
 #[no_mangle]
 pub extern "C" fn _start() -> ! {
-    let vga_buffer = 0xb8000 as *mut u8;
-
-    for (i, &byte) in HELLO.iter().enumerate() {
-        unsafe {
-            *vga_buffer.offset(i as isize * 2) = byte;
-            *vga_buffer.offset(i as isize * 2 + 1) = 0xb;
-        }
-    }
-
+    println!("Goodbye, world!");
     loop {}
 }
 
 // this function is called on panic
 #[panic_handler]
-fn panic(_info: &PanicInfo) -> ! {
+fn panic(info: &PanicInfo) -> ! {
+    println!("{}", info);
     loop {}
+}
+
+mod vga_buffer;
+
+
+#[feature(custom_test_frameworks)]
+#[test_runner(crate::test_runner)]
+
+#[cfg(test)]
+fn test_runner(tests: &[&dyn Fn()]) {
+    println!("Running {} tests", tests.len());
+    for test in tests {
+        test();
+    }
 }
